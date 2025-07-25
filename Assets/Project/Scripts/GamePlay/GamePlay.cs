@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GamePlay : MonoBehaviour
@@ -6,17 +8,21 @@ public class GamePlay : MonoBehaviour
     [SerializeField, Range(1, 50)] private int _startBallCount = 10;
     [SerializeField] private Transform _parentBallSignals;
     [SerializeField] private Ball _prefabBall;
+    private BallPoolHandler _ballPool;
     private BallSpawner _ballSpawner;
+    private Ball _currentBall;
 
     [Header("Pendulum")]
     [SerializeField] private Pendulum _pendulum;
     [SerializeField] private LayerMask _layerMaskBall;
 
+    [Header("Match Three")]
+    [SerializeField] private List<ScoreForColorProperty> _scoresForColor;
+
     [Header("Application")]
     [SerializeField] private EventSystem _eventSystem;
 
     public MatchThree MatchThree { get; private set; }
-
 
     private void Awake()
     {
@@ -27,40 +33,71 @@ public class GamePlay : MonoBehaviour
 
         _eventSystem.Init();
 
-        _ballSpawner = new(new BallPoolHandler(_prefabBall, _parentBallSignals, _startBallCount));
-        CreateBall();
+        _ballPool = new BallPoolHandler(_prefabBall, _parentBallSignals, _startBallCount);
+        _ballSpawner = new(_ballPool);
+
+        TryCreateBall();
     }
 
     private void OnEnable()
     {
         _eventSystem.OnClick += OnClick;
+        _eventSystem.PressAnyKey += PressAnyKey;
+        MatchThree.OnRemoveBall += RemoveBalls;
+        MatchThree.OnGameOver += GameOver;
+        MatchThree.OnCompleteColor += CompleteColor;
     }
 
     private void OnDisable()
     {
         _eventSystem.OnClick -= OnClick;
+        _eventSystem.PressAnyKey -= PressAnyKey;
+        MatchThree.OnRemoveBall -= RemoveBalls;
+        MatchThree.OnGameOver -= GameOver;
+        MatchThree.OnCompleteColor -= CompleteColor;
     }
 
-    private void CreateBall()
+    private void TryCreateBall()
     {
-        Ball ball = _ballSpawner.Spawn()
+        if (_currentBall && _currentBall.IsConnected == false)
+            return;
+
+        if (_currentBall != null)
+            _currentBall.Disconnect();
+
+        _currentBall = _ballSpawner.Spawn()
             .Show();
 
-        ball.ConnectTo(_pendulum);
+        _currentBall.ConnectTo(_pendulum);
+    }
+
+    public void RemoveBalls(List<Ball> balls)
+    {
+        balls.ForEach(ball => {
+            ball.Burst();
+            _ballPool.Return(ball);
+        });
+    }
+
+    private void GameOver()
+    {
+        RemoveBalls(MatchThree.GetBalls());
+        MatchThree.Clear();
+    }
+
+    private void CompleteColor(BallColorType colorType)
+    {
+        Debug.Log(colorType);
     }
 
     private void OnClick(Vector2 mousePosition)
+        => TryCreateBall();
+
+    private void PressAnyKey(string key)
     {
-        Vector2 worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(worldMousePosition, Vector2.zero, 100f, _layerMaskBall);
-
-        if (hit.collider != null && hit.collider.TryGetComponent(out Ball ball))
+        if (key == Constants.KEY_SPACE)
         {
-            if (ball.IsConnected == false)
-                return;
-
-            ball.Disconnect();
-            CreateBall();
+            TryCreateBall();
         }
     }
 }

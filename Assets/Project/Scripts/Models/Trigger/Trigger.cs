@@ -14,12 +14,4 @@ public class Trigger : MonoBehaviour
             _gamePlay.MatchThree.SetCell(ball, this);
         }
     }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.TryGetComponent(out Ball ball))
-        {
-            _gamePlay.MatchThree.SetCell(null, this);
-        }
-    }
 }

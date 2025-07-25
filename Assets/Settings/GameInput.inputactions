@@ -121,6 +121,17 @@
                     "action": "PressKey",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d8a64db8-2257-4152-b7dc-4a5f3bd2c7a1",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressKey",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },

@@ -1,7 +1,6 @@
 public enum BallColorType
 {
-    None = 0,
+    Red = 0,
     Green,
-    Blue,
-    Red
+    Blue
 }

@@ -8,5 +8,8 @@
     }
 
     public Ball Spawn()
-        => _signalBallHandler.Get();
+    { 
+        Ball ball = _signalBallHandler.Get();
+        return ball.SetColor(Utilits.GetRandomEnum<BallColorType>());
+    }
 }

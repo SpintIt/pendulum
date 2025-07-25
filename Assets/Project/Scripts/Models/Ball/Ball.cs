@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
+    [SerializeField] private BallEffects _effets;
     [SerializeField] private Painter _painter;
     [SerializeField] private HingeJoint2D _joint;
     [SerializeField] private Collider2D _collider;
@@ -15,6 +16,7 @@ public class Ball : MonoBehaviour
     {
         transform.parent = pendulum.transform;
         transform.position = pendulum.SpawnPosition.transform.position;
+        _joint.enabled = true;
         _joint.connectedBody = pendulum.ConnectedRigidbody;
         IsConnected = true;
     }
@@ -46,4 +48,7 @@ public class Ball : MonoBehaviour
         _joint.enabled = false;
         IsConnected = false;
     }
+
+    public void Burst()
+        => _effets.Burst(this);
 }

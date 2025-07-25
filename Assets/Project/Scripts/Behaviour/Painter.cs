@@ -17,7 +17,7 @@ public class Painter : MonoBehaviour
             case BallColorType.Blue:
                 _spriteRenderer.color = Color.blue;
                 break;
-            case BallColorType.None:
+            default:
                 _spriteRenderer.color = Color.white;
                 break;
         }
