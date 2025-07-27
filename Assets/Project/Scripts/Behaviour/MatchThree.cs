@@ -17,7 +17,7 @@ public class MatchThree
 
     public MatchThree()
     {
-        _isDedug = true;
+        _isDedug = false;
         _matrix = new Ball[3, 3];
     }
 

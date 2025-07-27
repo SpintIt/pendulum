@@ -47,6 +47,11 @@ public class Pool<TObject>
         return item;
     }
 
+    public void ReturnAll()
+    {
+        Queue.ForEach(item => Return(item));
+    }
+
     public virtual TObject GetFirst()
         => Queue.First();
 }

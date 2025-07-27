@@ -12,7 +12,7 @@ public class Pendulum : MonoBehaviour
 
     private bool _isBackMove;
 
-    private void Update()
+    public void Handler()
     {
         Move();
     }

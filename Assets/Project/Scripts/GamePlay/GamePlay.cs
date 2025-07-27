@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GamePlay : MonoBehaviour
 {
+    private bool _isPlay;
+
     [Header("Pool Balls")]
     [SerializeField, Range(1, 50)] private int _startBallCount = 10;
     [SerializeField] private Transform _parentBallSignals;
@@ -14,20 +16,28 @@ public class GamePlay : MonoBehaviour
 
     [Header("Pendulum")]
     [SerializeField] private Pendulum _pendulum;
-    [SerializeField] private LayerMask _layerMaskBall;
 
     [Header("Match Three")]
     [SerializeField] private List<ScoreForColorProperty> _scoresForColor;
+
+    [Header("Scores")]
+    [SerializeField] private UIScorePanel _uiScorePanel;
+    private ScoreCounter _scoreCounter;
+
+    [Header("GameOver")]
+    [SerializeField] private UIGameOver _uiGameOver;
+
 
     [Header("Application")]
     [SerializeField] private EventSystem _eventSystem;
 
     public MatchThree MatchThree { get; private set; }
 
-    private void Awake()
+    public void Init()
     {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = 60;
+        _isPlay = false;
+
+        _uiGameOver.Hide();
 
         MatchThree = new();
 
@@ -35,26 +45,47 @@ public class GamePlay : MonoBehaviour
 
         _ballPool = new BallPoolHandler(_prefabBall, _parentBallSignals, _startBallCount);
         _ballSpawner = new(_ballPool);
+        _scoreCounter = new(_uiScorePanel, MatchThree, _scoresForColor);
 
+        _eventSystem.OnClick += OnClick;
+        _eventSystem.PressAnyKey += OnPressAnyKey;
+        MatchThree.OnRemoveBall += RemoveBalls;
+        MatchThree.OnGameOver += OnGameOver;
+    }
+
+    private void OnDestroy()
+    {
+        _eventSystem.OnClick -= OnClick;
+        _eventSystem.PressAnyKey -= OnPressAnyKey;
+        MatchThree.OnRemoveBall -= RemoveBalls;
+        MatchThree.OnGameOver -= OnGameOver;
+    }
+
+    private void Update()
+    {
+        if (_isPlay)
+        {
+            _pendulum.Handler();   
+        }
+    }
+
+    public void StartGame()
+    {
+        _isPlay = true;
+        _uiScorePanel.Show();
+        _scoreCounter.Reset();
+        _uiGameOver.Hide();
         TryCreateBall();
     }
 
-    private void OnEnable()
+    public void StopGame()
     {
-        _eventSystem.OnClick += OnClick;
-        _eventSystem.PressAnyKey += PressAnyKey;
-        MatchThree.OnRemoveBall += RemoveBalls;
-        MatchThree.OnGameOver += GameOver;
-        MatchThree.OnCompleteColor += CompleteColor;
-    }
-
-    private void OnDisable()
-    {
-        _eventSystem.OnClick -= OnClick;
-        _eventSystem.PressAnyKey -= PressAnyKey;
-        MatchThree.OnRemoveBall -= RemoveBalls;
-        MatchThree.OnGameOver -= GameOver;
-        MatchThree.OnCompleteColor -= CompleteColor;
+        _isPlay = false;
+        _uiScorePanel.Hide();
+        _uiGameOver.Hide();
+        MatchThree.Clear();
+        RemoveBalls(MatchThree.GetBalls());
+        _ballPool.ReturnAll();
     }
 
     private void TryCreateBall()
@@ -79,21 +110,20 @@ public class GamePlay : MonoBehaviour
         });
     }
 
-    private void GameOver()
+    private void OnGameOver()
     {
-        RemoveBalls(MatchThree.GetBalls());
-        MatchThree.Clear();
-    }
-
-    private void CompleteColor(BallColorType colorType)
-    {
-        Debug.Log(colorType);
+        StopGame();
+        _uiGameOver.ShowScore(_scoreCounter.ScoreCount)
+            .Show();
     }
 
     private void OnClick(Vector2 mousePosition)
-        => TryCreateBall();
+    { 
+        if (_isPlay)
+            TryCreateBall();
+    }
 
-    private void PressAnyKey(string key)
+    private void OnPressAnyKey(string key)
     {
         if (key == Constants.KEY_SPACE)
         {

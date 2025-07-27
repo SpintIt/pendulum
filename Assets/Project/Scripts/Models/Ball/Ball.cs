@@ -9,6 +9,8 @@ public class Ball : MonoBehaviour
     [SerializeField] private Collider2D _collider;
     [SerializeField, Range(.1f, 1f)] private float _speedShow;
 
+    [field: SerializeField] public Rigidbody2D Rigidbody2D { get; private set; }
+
     public bool IsConnected { get; private set; }
     public BallColorType ColorType { get; private set; }
 
